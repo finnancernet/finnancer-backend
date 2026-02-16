@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Delete, Param, Query, UseGuards, NotFoundException } from '@nestjs/common';
 import { AccountService } from './account.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -64,5 +64,21 @@ export class AccountController {
       itemId,
       user['_id'].toString(),
     );
+  }
+
+  @Delete(':accountId')
+  async remove(
+    @Param('accountId') accountId: string,
+    @CurrentUser() user: User,
+  ) {
+    const account = await this.accountService.findByAccountIdAndUser(
+      accountId,
+      user['_id'].toString(),
+    );
+    if (!account) {
+      throw new NotFoundException('Account not found');
+    }
+    await this.accountService.deleteAccountByUser(accountId, user['_id'].toString());
+    return { success: true };
   }
 }

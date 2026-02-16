@@ -9,6 +9,7 @@ import { UserModule } from './user/user.module';
 import { PlaidModule } from './plaid/plaid.module';
 import { TransactionModule } from './transaction/transaction.module';
 import { AccountModule } from './account/account.module';
+import { BudgetModule } from './budget/budget.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
 import { EmailModule } from './email/email.module';
 
@@ -32,6 +33,7 @@ import { EmailModule } from './email/email.module';
     PlaidModule,
     TransactionModule,
     AccountModule,
+    BudgetModule,
     SchedulerModule,
     EmailModule,
   ],

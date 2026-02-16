@@ -1,5 +1,6 @@
 import { Transaction } from '../../transaction/schemas/transaction.schema';
 import { Account } from '../../account/schemas/account.schema';
+import { BudgetWithStatus } from '../../budget/budget.service';
 
 interface CategoryGroup {
   category: string;
@@ -12,6 +13,7 @@ export class TransactionSummaryTemplate {
     account: Account,
     transactions: Transaction[],
     date: Date,
+    budgets: BudgetWithStatus[] = [],
   ): string {
     const groupedByCategory = this.groupByCategory(transactions);
     const totalSpent = this.calculateTotal(transactions);
@@ -169,6 +171,66 @@ export class TransactionSummaryTemplate {
       color: #95a5a6;
       font-size: 16px;
     }
+    .budget-section {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 2px solid #e0e0e0;
+    }
+    .budget-section h2 {
+      color: #2c3e50;
+      font-size: 22px;
+      margin: 0 0 20px 0;
+    }
+    .budget-card {
+      background-color: #f8f9fa;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 12px;
+    }
+    .budget-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .budget-name {
+      font-weight: 600;
+      color: #2c3e50;
+      font-size: 15px;
+    }
+    .budget-period {
+      font-size: 12px;
+      color: #7f8c8d;
+      background-color: #ecf0f1;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+    .budget-amounts {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: #555;
+      margin-bottom: 8px;
+    }
+    .budget-progress-bar {
+      width: 100%;
+      height: 12px;
+      background-color: #e0e0e0;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .budget-progress-fill {
+      height: 100%;
+      border-radius: 6px;
+      transition: width 0.3s;
+    }
+    .budget-percentage {
+      text-align: right;
+      font-size: 13px;
+      font-weight: 600;
+      margin-top: 4px;
+    }
   </style>
 </head>
 <body>
@@ -183,6 +245,7 @@ export class TransactionSummaryTemplate {
     </div>
 
     ${transactions.length === 0 ? this.generateNoTransactions() : this.generateSummary(transactions, totalSpent, groupedByCategory)}
+    ${budgets.length > 0 ? this.generateBudgetSection(budgets) : ''}
   </div>
 </body>
 </html>
@@ -274,6 +337,42 @@ export class TransactionSummaryTemplate {
         ${transaction.merchantName ? `<span class="merchant">🏪 ${transaction.merchantName}</span>` : ''}
         <span class="date-time">📅 ${dateString} at ${timeString}</span>
       </div>
+    </div>
+    `;
+  }
+
+  private static generateBudgetSection(budgets: BudgetWithStatus[]): string {
+    return `
+    <div class="budget-section">
+      <h2>📊 Budget Overview</h2>
+      ${budgets.map((b) => this.generateBudgetCard(b)).join('')}
+    </div>
+    `;
+  }
+
+  private static generateBudgetCard(item: BudgetWithStatus): string {
+    const { budget, spent, remaining, percentage } = item;
+    const progressColor = percentage >= 90 ? '#e74c3c' : percentage >= 75 ? '#f39c12' : '#27ae60';
+    const remainingColor = remaining >= 0 ? '#27ae60' : '#e74c3c';
+    const remainingText = remaining >= 0
+      ? `$${remaining.toFixed(2)} remaining`
+      : `$${Math.abs(remaining).toFixed(2)} over budget`;
+    const periodLabel = budget.period.charAt(0).toUpperCase() + budget.period.slice(1);
+
+    return `
+    <div class="budget-card">
+      <div class="budget-card-header">
+        <span class="budget-name">${budget.name}</span>
+        <span class="budget-period">${periodLabel}</span>
+      </div>
+      <div class="budget-amounts">
+        <span>$${spent.toFixed(2)} spent of $${budget.amount.toFixed(2)}</span>
+        <span style="color: ${remainingColor}; font-weight: 600;">${remainingText}</span>
+      </div>
+      <div class="budget-progress-bar">
+        <div class="budget-progress-fill" style="width: ${Math.min(percentage, 100)}%; background-color: ${progressColor};"></div>
+      </div>
+      <div class="budget-percentage" style="color: ${progressColor};">${percentage}%</div>
     </div>
     `;
   }

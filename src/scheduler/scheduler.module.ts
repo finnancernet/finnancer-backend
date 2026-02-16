@@ -13,6 +13,7 @@ import { PlaidModule } from '../plaid/plaid.module';
 import { AccountModule } from '../account/account.module';
 import { TransactionModule } from '../transaction/transaction.module';
 import { EmailModule } from '../email/email.module';
+import { BudgetModule } from '../budget/budget.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { EmailModule } from '../email/email.module';
     AccountModule,
     TransactionModule,
     EmailModule,
+    BudgetModule,
   ],
   controllers: [SchedulerController],
   providers: [SchedulerService, EmailSchedulerService],

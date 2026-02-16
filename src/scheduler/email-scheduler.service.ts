@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -10,6 +10,7 @@ import {
 } from '../transaction/schemas/transaction.schema';
 import { EmailService } from '../email/email.service';
 import { TransactionSummaryTemplate } from '../email/templates/transaction-summary.template';
+import { BudgetService, BudgetWithStatus } from '../budget/budget.service';
 
 @Injectable()
 export class EmailSchedulerService {
@@ -21,10 +22,20 @@ export class EmailSchedulerService {
     private transactionModel: Model<TransactionDocument>,
     private emailService: EmailService,
     private configService: ConfigService,
+    private budgetService: BudgetService,
   ) {}
 
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
-  async sendDailyTransactionSummary() {
+  @Cron('0 11 * * *')
+  async sendMorningTransactionSummary() {
+    await this.sendDailyTransactionSummary();
+  }
+
+  @Cron('0 20 * * *')
+  async sendEveningTransactionSummary() {
+    await this.sendDailyTransactionSummary();
+  }
+
+  private async sendDailyTransactionSummary() {
     const isEnabled = this.configService.get<string>(
       'EMAIL_DAILY_SUMMARY_ENABLED',
     );
@@ -94,11 +105,20 @@ export class EmailSchedulerService {
         `Found ${transactions.length} transactions for account ${account.accountId}`,
       );
 
+      // Fetch budget statuses for this user
+      let budgets: BudgetWithStatus[] = [];
+      try {
+        budgets = await this.budgetService.getAllBudgetsWithStatus(account.userId);
+      } catch (err) {
+        this.logger.warn(`Could not fetch budgets for user ${account.userId}`, err);
+      }
+
       // Generate email HTML
       const emailHtml = TransactionSummaryTemplate.generate(
         account,
         transactions,
         startDate,
+        budgets,
       );
 
       const subject = `Daily Transaction Summary - ${startDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`;
