@@ -65,17 +65,31 @@ export class TransactionController {
     @Param('accountId') accountId: string,
     @CurrentUser() user: User,
     @Query() query: TransactionQueryDto,
-  ) {
+  ): Promise<PaginatedResponse<Transaction>> {
     const userId = user['_id'].toString();
+    const filters = {
+      accountId,
+      startDate: query.startDate,
+      endDate: query.endDate,
+    };
 
-    if (query.startDate && query.endDate) {
-      return this.transactionService.findByDateRangeAndUser(
-        accountId,
-        userId,
-        new Date(query.startDate),
-        new Date(query.endDate),
-      );
-    }
-    return this.transactionService.findByAccountIdAndUser(accountId, userId);
+    const [data, total] = await Promise.all([
+      this.transactionService.findAllByUser(userId, query.skip, query.limit, filters),
+      this.transactionService.countByUser(userId, filters),
+    ]);
+
+    const totalPages = Math.ceil(total / query.limit);
+
+    return {
+      data,
+      meta: {
+        total,
+        page: query.page,
+        limit: query.limit,
+        totalPages,
+        hasNextPage: query.page < totalPages,
+        hasPreviousPage: query.page > 1,
+      },
+    };
   }
 }
