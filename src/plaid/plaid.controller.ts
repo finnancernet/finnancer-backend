@@ -46,7 +46,7 @@ export class PlaidController {
       user: {
         client_user_id: userId,
       },
-      client_name: 'Plaid Financcer',
+      client_name: 'Finnancer',
       products: [Products.Transactions],
       country_codes: [CountryCode.Us],
       language: 'en',

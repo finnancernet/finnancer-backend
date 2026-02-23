@@ -114,7 +114,6 @@ export class BudgetService {
       accountId: { $in: accountIds },
       'personalFinanceCategory.primary': { $in: budget.categories },
       date: { $gte: startDate, $lte: endDate },
-      pending: false,
     };
 
     const [transactions, total, spentResult] = await Promise.all([
@@ -212,7 +211,6 @@ export class BudgetService {
           accountId: { $in: accountIds },
           'personalFinanceCategory.primary': { $in: categories },
           date: { $gte: startDate, $lte: endDate },
-          pending: false,
         },
       },
       {

@@ -1,4 +1,4 @@
-# Plaid Financcer 2
+# Plaid Finnancer 2
 
 A NestJS application with MongoDB integration that automatically syncs bank account data and transactions from Plaid API on an hourly basis.
 
@@ -107,10 +107,10 @@ chmod +x mongodb/setup-db.sh
 
 ```bash
 # 1. Initialize database with collections and indexes
-mongosh plaid-financcer < mongodb/init-db.js
+mongosh plaid-Finnancer < mongodb/init-db.js
 
 # 2. (Optional) Load sample data for testing
-mongosh plaid-financcer < mongodb/sample-data.js
+mongosh plaid-Finnancer < mongodb/sample-data.js
 ```
 
 ### What Gets Created
@@ -213,7 +213,7 @@ The scheduler will automatically start syncing data every hour once configured.
 |----------|-------------|---------|
 | PORT | Application port | 3000 |
 | NODE_ENV | Environment | development |
-| MONGODB_URI | MongoDB connection string | mongodb://localhost:27017/plaid-financcer |
+| MONGODB_URI | MongoDB connection string | mongodb://localhost:27017/plaid-Finnancer |
 | PLAID_CLIENT_ID | Plaid client ID | - |
 | PLAID_SECRET | Plaid secret key | - |
 | PLAID_ENV | Plaid environment | sandbox |
@@ -335,7 +335,7 @@ JWT_SECRET=<your-secure-256-bit-secret-here>
 JWT_EXPIRATION=1h
 
 # MongoDB with authentication
-MONGODB_URI=mongodb://user:password@mongo-host:27017/plaid-financcer?authSource=admin&ssl=true
+MONGODB_URI=mongodb://user:password@mongo-host:27017/plaid-Finnancer?authSource=admin&ssl=true
 
 # Plaid Production
 PLAID_CLIENT_ID=<production-client-id>
@@ -349,7 +349,7 @@ SMTP_PORT=587
 SMTP_SECURE=false
 SMTP_USER=apikey
 SMTP_PASSWORD=<sendgrid-api-key>
-EMAIL_FROM=Plaid Financcer <noreply@yourdomain.com>
+EMAIL_FROM=Plaid Finnancer <noreply@yourdomain.com>
 EMAIL_DAILY_SUMMARY_ENABLED=true
 
 # Security

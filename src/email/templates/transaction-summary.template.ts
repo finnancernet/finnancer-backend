@@ -285,7 +285,7 @@ export class TransactionSummaryTemplate {
     ${groupedByCategory.map((group) => this.generateCategorySection(group)).join('')}
 
     <div class="footer">
-      <p>This is an automated summary from Plaid Financcer</p>
+      <p>This is an automated summary from  your Finnancer account</p>
       <p>Generated on ${new Date().toLocaleString()}</p>
     </div>
     `;

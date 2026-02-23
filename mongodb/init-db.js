@@ -6,7 +6,7 @@
 use plaid-financcer;
 
 print('==================================');
-print('Initializing Plaid Financcer Database');
+print('Initializing Plaid Finnancer Database');
 print('==================================\n');
 
 // Create collections (Mongoose will create them automatically, but we can pre-create with validators)

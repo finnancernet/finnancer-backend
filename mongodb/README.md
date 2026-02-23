@@ -1,12 +1,12 @@
 # MongoDB Scripts
 
-This directory contains MongoDB scripts for initializing, managing, and querying the Plaid Financcer database.
+This directory contains MongoDB scripts for initializing, managing, and querying the Plaid Finnancer database.
 
 ## Prerequisites
 
 - MongoDB installed and running (locally or remote)
 - MongoDB Shell (`mongosh`) installed
-- Database name: `plaid-financcer`
+- Database name: `plaid-finnancer`
 
 ## Scripts Overview
 
@@ -16,11 +16,11 @@ This directory contains MongoDB scripts for initializing, managing, and querying
 **Usage**:
 ```bash
 # Connect to MongoDB and run the script
-mongosh plaid-financcer < mongodb/init-db.js
+mongosh plaid-finnancer < mongodb/init-db.js
 
 # Or run directly in mongosh
 mongosh
-use plaid-financcer
+use plaid-finnancer
 load('mongodb/init-db.js')
 ```
 
@@ -42,7 +42,7 @@ load('mongodb/init-db.js')
 **Usage**:
 ```bash
 # Run the script
-mongosh plaid-financcer < mongodb/sample-data.js
+mongosh plaid-finnancer < mongodb/sample-data.js
 ```
 
 **What it includes**:
@@ -58,7 +58,7 @@ mongosh plaid-financcer < mongodb/sample-data.js
 **Usage**:
 ```bash
 # Open the file and copy-paste queries into mongosh
-mongosh plaid-financcer
+mongosh plaid-finnancer
 
 # Then run any query from queries.js
 ```
@@ -75,19 +75,19 @@ mongosh plaid-financcer
 ### Option 1: Fresh Setup
 ```bash
 # 1. Initialize database
-mongosh plaid-financcer < mongodb/init-db.js
+mongosh plaid-finnancer < mongodb/init-db.js
 
 # 2. (Optional) Add sample data for testing
-mongosh plaid-financcer < mongodb/sample-data.js
+mongosh plaid-finnancer < mongodb/sample-data.js
 
 # 3. Verify setup
-mongosh plaid-financcer --eval "db.getCollectionNames()"
+mongosh plaid-finnancer --eval "db.getCollectionNames()"
 ```
 
 ### Option 2: Using MongoDB Compass
 1. Open MongoDB Compass
 2. Connect to `mongodb://localhost:27017`
-3. Create database: `plaid-financcer`
+3. Create database: `plaid-finnancer`
 4. Copy and paste contents of `init-db.js` into Compass shell
 5. Run the script
 
@@ -124,7 +124,7 @@ If you prefer not to use the scripts, Mongoose will automatically create collect
 
 ### Check Collections
 ```javascript
-use plaid-financcer
+use plaid-finnancer
 show collections
 ```
 
@@ -153,10 +153,10 @@ db.syncconfigs.drop()
 ### Backup Database
 ```bash
 # Backup entire database
-mongodump --db=plaid-financcer --out=/path/to/backup
+mongodump --db=plaid-finnancer --out=/path/to/backup
 
 # Restore database
-mongorestore --db=plaid-financcer /path/to/backup/plaid-financcer
+mongorestore --db=plaid-finnancer /path/to/backup/plaid-finnancer
 ```
 
 ## Troubleshooting
@@ -181,7 +181,7 @@ use admin
 db.createUser({
   user: "plaid_user",
   pwd: "your_password",
-  roles: [{ role: "readWrite", db: "plaid-financcer" }]
+  roles: [{ role: "readWrite", db: "plaid-finnancer" }]
 })
 ```
 
@@ -201,13 +201,13 @@ db.syncconfigs.dropIndexes()
 Make sure your `.env` file has the correct MongoDB connection string:
 
 ```env
-MONGODB_URI=mongodb://localhost:27017/plaid-financcer
+MONGODB_URI=mongodb://localhost:27017/plaid-finnancer
 
 # Or for authenticated connection:
-MONGODB_URI=mongodb://username:password@localhost:27017/plaid-financcer
+MONGODB_URI=mongodb://username:password@localhost:27017/plaid-finnancer
 
 # Or for MongoDB Atlas:
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/plaid-financcer
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/plaid-finnancer
 ```
 
 ## Next Steps
