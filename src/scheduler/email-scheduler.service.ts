@@ -90,15 +90,16 @@ export class EmailSchedulerService {
       );
 
       // Get transactions for yesterday
+      const dateFilter = { $gte: startDate, $lt: endDate };
       const transactions = await this.transactionModel
         .find({
           accountId: account.accountId,
-          authorizedDate: {
-            $gte: startDate,
-            $lt: endDate,
-          },
+          $or: [
+            { effectiveDate: dateFilter },
+            { effectiveDate: null, authorizedDate: dateFilter },
+          ],
         })
-        .sort({ authorizedDate: -1, date: -1 })
+        .sort({ effectiveDate: -1, date: -1 })
         .exec();
 
       this.logger.log(

@@ -30,10 +30,15 @@ export class TransactionService {
     transactionData: Partial<Transaction>,
   ): Promise<Transaction> {
     try {
+      const { effectiveDate, ...updateData } = transactionData;
+
       const transaction = await this.transactionModel
         .findOneAndUpdate(
           { transactionId: transactionData.transactionId },
-          { $set: transactionData },
+          {
+            $set: updateData,
+            $setOnInsert: { effectiveDate },
+          },
           { upsert: true, new: true },
         )
         .exec();
@@ -52,7 +57,7 @@ export class TransactionService {
   }
 
   async findAll(): Promise<Transaction[]> {
-    return this.transactionModel.find().sort({ authorizedDate: -1, date: -1 }).exec();
+    return this.transactionModel.find().sort({ effectiveDate: -1, date: -1 }).exec();
   }
 
   private buildTransactionQuery(
@@ -66,9 +71,17 @@ export class TransactionService {
     };
 
     if (filters?.startDate || filters?.endDate) {
-      query.authorizedDate = {};
-      if (filters.startDate) query.authorizedDate.$gte = new Date(filters.startDate);
-      if (filters.endDate) query.authorizedDate.$lte = new Date(filters.endDate);
+      const dateFilter: any = {};
+      if (filters.startDate) dateFilter.$gte = new Date(filters.startDate);
+      if (filters.endDate) dateFilter.$lte = new Date(filters.endDate);
+
+      if (!query.$and) query.$and = [];
+      query.$and.push({
+        $or: [
+          { effectiveDate: dateFilter },
+          { effectiveDate: null, authorizedDate: dateFilter },
+        ],
+      });
     }
 
     if (filters?.minAmount !== undefined || filters?.maxAmount !== undefined) {
@@ -86,11 +99,14 @@ export class TransactionService {
     }
 
     if (filters?.search) {
-      query.$or = [
-        { name: { $regex: filters.search, $options: 'i' } },
-        { merchantName: { $regex: filters.search, $options: 'i' } },
-        { originalDescription: { $regex: filters.search, $options: 'i' } },
-      ];
+      if (!query.$and) query.$and = [];
+      query.$and.push({
+        $or: [
+          { name: { $regex: filters.search, $options: 'i' } },
+          { merchantName: { $regex: filters.search, $options: 'i' } },
+          { originalDescription: { $regex: filters.search, $options: 'i' } },
+        ],
+      });
     }
 
     return query;
@@ -114,7 +130,7 @@ export class TransactionService {
 
     const query = this.transactionModel
       .find(mongoQuery)
-      .sort({ authorizedDate: -1, date: -1 });
+      .sort({ effectiveDate: -1, date: -1 });
 
     if (skip !== undefined) {
       query.skip(skip);
@@ -154,7 +170,7 @@ export class TransactionService {
   async findByAccountId(accountId: string): Promise<Transaction[]> {
     return this.transactionModel
       .find({ accountId })
-      .sort({ authorizedDate: -1, date: -1 })
+      .sort({ effectiveDate: -1, date: -1 })
       .exec();
   }
 
@@ -172,7 +188,7 @@ export class TransactionService {
 
     return this.transactionModel
       .find({ accountId })
-      .sort({ authorizedDate: -1, date: -1 })
+      .sort({ effectiveDate: -1, date: -1 })
       .exec();
   }
 
@@ -181,12 +197,16 @@ export class TransactionService {
     startDate: Date,
     endDate: Date,
   ): Promise<Transaction[]> {
+    const dateFilter = { $gte: startDate, $lte: endDate };
     return this.transactionModel
       .find({
         accountId,
-        authorizedDate: { $gte: startDate, $lte: endDate },
+        $or: [
+          { effectiveDate: dateFilter },
+          { effectiveDate: null, authorizedDate: dateFilter },
+        ],
       })
-      .sort({ authorizedDate: -1, date: -1 })
+      .sort({ effectiveDate: -1, date: -1 })
       .exec();
   }
 
@@ -204,12 +224,16 @@ export class TransactionService {
       return [];
     }
 
+    const dateFilter = { $gte: startDate, $lte: endDate };
     return this.transactionModel
       .find({
         accountId,
-        authorizedDate: { $gte: startDate, $lte: endDate },
+        $or: [
+          { effectiveDate: dateFilter },
+          { effectiveDate: null, authorizedDate: dateFilter },
+        ],
       })
-      .sort({ authorizedDate: -1, date: -1 })
+      .sort({ effectiveDate: -1, date: -1 })
       .exec();
   }
 
@@ -224,6 +248,28 @@ export class TransactionService {
       .findOneAndUpdate(
         { transactionId, accountId: { $in: accountIds } },
         { $set: { excludeFromBudget: exclude } },
+        { new: true },
+      )
+      .exec();
+
+    if (!transaction) {
+      throw new Error('Transaction not found');
+    }
+
+    return transaction;
+  }
+
+  async updateEffectiveDate(
+    transactionId: string,
+    userId: string,
+    effectiveDate: Date,
+  ): Promise<Transaction> {
+    const accountIds = await this.getAccountIdsForUser(userId);
+
+    const transaction = await this.transactionModel
+      .findOneAndUpdate(
+        { transactionId, accountId: { $in: accountIds } },
+        { $set: { effectiveDate } },
         { new: true },
       )
       .exec();

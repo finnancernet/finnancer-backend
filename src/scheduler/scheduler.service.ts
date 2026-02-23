@@ -252,6 +252,9 @@ export class SchedulerService {
       authorizedDate: transaction.authorized_date
         ? new Date(transaction.authorized_date)
         : null,
+      effectiveDate: transaction.authorized_date
+        ? new Date(transaction.authorized_date)
+        : new Date(transaction.date),
       name: transaction.name,
       merchantName: transaction.merchant_name,
       pending: transaction.pending,

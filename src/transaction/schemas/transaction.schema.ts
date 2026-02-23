@@ -44,6 +44,9 @@ export class Transaction {
   @Prop()
   authorizedDate: Date;
 
+  @Prop()
+  effectiveDate: Date;
+
   @Prop({ required: true })
   name: string;
 

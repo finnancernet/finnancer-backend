@@ -4,7 +4,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { User } from '../user/schemas/user.schema';
 import { TransactionQueryDto } from './dto/transaction-query.dto';
-import { UpdateExcludeFromBudgetDto } from './dto/update-transaction.dto';
+import { UpdateExcludeFromBudgetDto, UpdateEffectiveDateDto } from './dto/update-transaction.dto';
 import { PaginatedResponse } from '../common/dto/pagination.dto';
 import { Transaction } from './schemas/transaction.schema';
 
@@ -48,6 +48,23 @@ export class TransactionController {
         hasPreviousPage: query.page > 1,
       },
     };
+  }
+
+  @Patch(':transactionId/effective-date')
+  async updateEffectiveDate(
+    @Param('transactionId') transactionId: string,
+    @Body() dto: UpdateEffectiveDateDto,
+    @CurrentUser() user: User,
+  ) {
+    try {
+      return await this.transactionService.updateEffectiveDate(
+        transactionId,
+        user['_id'].toString(),
+        new Date(dto.effectiveDate),
+      );
+    } catch {
+      throw new NotFoundException('Transaction not found');
+    }
   }
 
   @Patch(':transactionId/exclude-from-budget')

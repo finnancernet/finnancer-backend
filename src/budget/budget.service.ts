@@ -110,10 +110,14 @@ export class BudgetService {
       };
     }
 
+    const dateFilter = { $gte: startDate, $lte: endDate };
     const matchQuery = {
       accountId: { $in: accountIds },
       'personalFinanceCategory.primary': { $in: budget.categories },
-      authorizedDate: { $gte: startDate, $lte: endDate },
+      $or: [
+        { effectiveDate: dateFilter },
+        { effectiveDate: null, authorizedDate: dateFilter },
+      ],
       excludeFromBudget: { $ne: true },
       amount: { $gt: 0 },
     };
@@ -121,7 +125,7 @@ export class BudgetService {
     const [transactions, total, spentResult] = await Promise.all([
       this.transactionModel
         .find(matchQuery)
-        .sort({ authorizedDate: -1, date: -1 })
+        .sort({ effectiveDate: -1, date: -1 })
         .skip(skip)
         .limit(limit)
         .exec(),
@@ -207,12 +211,16 @@ export class BudgetService {
 
     const { startDate, endDate } = this.getPeriodDateRange(period, offset);
 
+    const dateFilter = { $gte: startDate, $lte: endDate };
     const result = await this.transactionModel.aggregate([
       {
         $match: {
           accountId: { $in: accountIds },
           'personalFinanceCategory.primary': { $in: categories },
-          authorizedDate: { $gte: startDate, $lte: endDate },
+          $or: [
+            { effectiveDate: dateFilter },
+            { effectiveDate: null, authorizedDate: dateFilter },
+          ],
           excludeFromBudget: { $ne: true },
           amount: { $gt: 0 },
         },
