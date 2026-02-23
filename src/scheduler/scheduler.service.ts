@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -47,7 +47,7 @@ export class SchedulerService {
     }
   }
 
-  private async syncItemData(config: SyncConfigDocument) {
+  async syncItemData(config: SyncConfigDocument) {
     try {
       this.logger.log(`Syncing data for item: ${config.itemId}`);
 
@@ -159,6 +159,52 @@ export class SchedulerService {
       );
       throw error;
     }
+  }
+
+  private static readonly SYNC_COOLDOWN_MS = 30 * 60 * 1000; // 30 minutes
+
+  async syncAllForUser(userId: string): Promise<{ synced: number; lastSyncedAt: Date }> {
+    const configs = await this.syncConfigModel
+      .find({ userId, isActive: true })
+      .exec();
+
+    if (configs.length === 0) {
+      throw new BadRequestException('No linked accounts found');
+    }
+
+    // Check cooldown based on most recent sync
+    const lastSync = this.getMostRecentSync(configs);
+    if (lastSync) {
+      const elapsed = Date.now() - lastSync.getTime();
+      if (elapsed < SchedulerService.SYNC_COOLDOWN_MS) {
+        const remainingMs = SchedulerService.SYNC_COOLDOWN_MS - elapsed;
+        const remainingMin = Math.ceil(remainingMs / 60000);
+        throw new BadRequestException(
+          `Sync is on cooldown. Try again in ${remainingMin} minute${remainingMin !== 1 ? 's' : ''}.`,
+        );
+      }
+    }
+
+    for (const config of configs) {
+      await this.syncItemData(config);
+    }
+
+    const now = new Date();
+    return { synced: configs.length, lastSyncedAt: now };
+  }
+
+  async getLastSyncTime(userId: string): Promise<{ lastSyncedAt: Date | null }> {
+    const configs = await this.syncConfigModel
+      .find({ userId, isActive: true })
+      .exec();
+    return { lastSyncedAt: this.getMostRecentSync(configs) };
+  }
+
+  private getMostRecentSync(configs: SyncConfigDocument[]): Date | null {
+    const syncTimes = configs
+      .filter((c) => c.lastSyncedAt)
+      .map((c) => c.lastSyncedAt.getTime());
+    return syncTimes.length > 0 ? new Date(Math.max(...syncTimes)) : null;
   }
 
   async addSyncConfig(

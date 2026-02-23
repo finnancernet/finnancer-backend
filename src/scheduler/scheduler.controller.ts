@@ -32,6 +32,16 @@ export class SchedulerController {
     );
   }
 
+  @Post('sync')
+  async triggerSync(@CurrentUser() user: User) {
+    return this.schedulerService.syncAllForUser(user['_id'].toString());
+  }
+
+  @Get('last-sync')
+  async getLastSync(@CurrentUser() user: User) {
+    return this.schedulerService.getLastSyncTime(user['_id'].toString());
+  }
+
   @Delete('configs/:itemId')
   async removeSyncConfig(
     @Param('itemId') itemId: string,
