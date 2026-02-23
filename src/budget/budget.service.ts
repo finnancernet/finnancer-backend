@@ -115,6 +115,7 @@ export class BudgetService {
       'personalFinanceCategory.primary': { $in: budget.categories },
       authorizedDate: { $gte: startDate, $lte: endDate },
       excludeFromBudget: { $ne: true },
+      amount: { $gt: 0 },
     };
 
     const [transactions, total, spentResult] = await Promise.all([
@@ -213,6 +214,7 @@ export class BudgetService {
           'personalFinanceCategory.primary': { $in: categories },
           authorizedDate: { $gte: startDate, $lte: endDate },
           excludeFromBudget: { $ne: true },
+          amount: { $gt: 0 },
         },
       },
       {
