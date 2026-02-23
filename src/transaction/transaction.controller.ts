@@ -1,9 +1,10 @@
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Patch, Param, Query, Body, UseGuards, NotFoundException } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { User } from '../user/schemas/user.schema';
 import { TransactionQueryDto } from './dto/transaction-query.dto';
+import { UpdateExcludeFromBudgetDto } from './dto/update-transaction.dto';
 import { PaginatedResponse } from '../common/dto/pagination.dto';
 import { Transaction } from './schemas/transaction.schema';
 
@@ -47,6 +48,23 @@ export class TransactionController {
         hasPreviousPage: query.page > 1,
       },
     };
+  }
+
+  @Patch(':transactionId/exclude-from-budget')
+  async updateExcludeFromBudget(
+    @Param('transactionId') transactionId: string,
+    @Body() dto: UpdateExcludeFromBudgetDto,
+    @CurrentUser() user: User,
+  ) {
+    try {
+      return await this.transactionService.updateExcludeFromBudget(
+        transactionId,
+        user['_id'].toString(),
+        dto.excludeFromBudget,
+      );
+    } catch {
+      throw new NotFoundException('Transaction not found');
+    }
   }
 
   @Get(':transactionId')

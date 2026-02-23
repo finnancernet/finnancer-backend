@@ -213,6 +213,28 @@ export class TransactionService {
       .exec();
   }
 
+  async updateExcludeFromBudget(
+    transactionId: string,
+    userId: string,
+    exclude: boolean,
+  ): Promise<Transaction> {
+    const accountIds = await this.getAccountIdsForUser(userId);
+
+    const transaction = await this.transactionModel
+      .findOneAndUpdate(
+        { transactionId, accountId: { $in: accountIds } },
+        { $set: { excludeFromBudget: exclude } },
+        { new: true },
+      )
+      .exec();
+
+    if (!transaction) {
+      throw new Error('Transaction not found');
+    }
+
+    return transaction;
+  }
+
   async deleteTransaction(transactionId: string): Promise<void> {
     await this.transactionModel.deleteOne({ transactionId }).exec();
     this.logger.log(`Deleted transaction: ${transactionId}`);

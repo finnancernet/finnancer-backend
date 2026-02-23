@@ -114,6 +114,7 @@ export class BudgetService {
       accountId: { $in: accountIds },
       'personalFinanceCategory.primary': { $in: budget.categories },
       date: { $gte: startDate, $lte: endDate },
+      excludeFromBudget: { $ne: true },
     };
 
     const [transactions, total, spentResult] = await Promise.all([
@@ -211,6 +212,7 @@ export class BudgetService {
           accountId: { $in: accountIds },
           'personalFinanceCategory.primary': { $in: categories },
           date: { $gte: startDate, $lte: endDate },
+          excludeFromBudget: { $ne: true },
         },
       },
       {
@@ -234,7 +236,10 @@ export class BudgetService {
       case 'weekly': {
         startDate = new Date(now);
         const day = startDate.getDay();
-        startDate.setDate(startDate.getDate() - day + offset * 7);
+        // Monday-based week: getDay() returns 0 for Sun, 1 for Mon, etc.
+        // Shift so Monday=0: (day + 6) % 7
+        const daysSinceMonday = (day + 6) % 7;
+        startDate.setDate(startDate.getDate() - daysSinceMonday + offset * 7);
         startDate.setHours(0, 0, 0, 0);
         endDate = new Date(startDate);
         endDate.setDate(endDate.getDate() + 6);

@@ -100,6 +100,9 @@ export class Transaction {
 
   @Prop()
   website: string;
+
+  @Prop({ default: false })
+  excludeFromBudget: boolean;
 }
 
 export const TransactionSchema = SchemaFactory.createForClass(Transaction);
