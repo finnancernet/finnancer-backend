@@ -93,12 +93,12 @@ export class EmailSchedulerService {
       const transactions = await this.transactionModel
         .find({
           accountId: account.accountId,
-          date: {
+          authorizedDate: {
             $gte: startDate,
             $lt: endDate,
           },
         })
-        .sort({ date: -1 })
+        .sort({ authorizedDate: -1, date: -1 })
         .exec();
 
       this.logger.log(
@@ -148,14 +148,15 @@ export class EmailSchedulerService {
   }
 
   private getYesterdayDateRange(): { startDate: Date; endDate: Date } {
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    const startDate = new Date(yesterday);
-    startDate.setHours(0, 0, 0, 0);
-
-    const endDate = new Date(yesterday);
-    endDate.setHours(23, 59, 59, 999);
+    const now = new Date();
+    const startDate = new Date(Date.UTC(
+      now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 1,
+      0, 0, 0, 0,
+    ));
+    const endDate = new Date(Date.UTC(
+      now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 1,
+      23, 59, 59, 999,
+    ));
 
     this.logger.debug(
       `Date range: ${startDate.toISOString()} to ${endDate.toISOString()}`,

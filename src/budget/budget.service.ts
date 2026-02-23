@@ -113,14 +113,14 @@ export class BudgetService {
     const matchQuery = {
       accountId: { $in: accountIds },
       'personalFinanceCategory.primary': { $in: budget.categories },
-      date: { $gte: startDate, $lte: endDate },
+      authorizedDate: { $gte: startDate, $lte: endDate },
       excludeFromBudget: { $ne: true },
     };
 
     const [transactions, total, spentResult] = await Promise.all([
       this.transactionModel
         .find(matchQuery)
-        .sort({ date: -1 })
+        .sort({ authorizedDate: -1, date: -1 })
         .skip(skip)
         .limit(limit)
         .exec(),
@@ -211,7 +211,7 @@ export class BudgetService {
         $match: {
           accountId: { $in: accountIds },
           'personalFinanceCategory.primary': { $in: categories },
-          date: { $gte: startDate, $lte: endDate },
+          authorizedDate: { $gte: startDate, $lte: endDate },
           excludeFromBudget: { $ne: true },
         },
       },
@@ -234,27 +234,33 @@ export class BudgetService {
 
     switch (period) {
       case 'weekly': {
-        startDate = new Date(now);
-        const day = startDate.getDay();
-        // Monday-based week: getDay() returns 0 for Sun, 1 for Mon, etc.
-        // Shift so Monday=0: (day + 6) % 7
-        const daysSinceMonday = (day + 6) % 7;
-        startDate.setDate(startDate.getDate() - daysSinceMonday + offset * 7);
-        startDate.setHours(0, 0, 0, 0);
-        endDate = new Date(startDate);
-        endDate.setDate(endDate.getDate() + 6);
-        endDate.setHours(23, 59, 59, 999);
+        // Use UTC to match how authorizedDate is stored in MongoDB
+        const utcDay = now.getUTCDay();
+        const daysSinceMonday = (utcDay + 6) % 7;
+        startDate = new Date(Date.UTC(
+          now.getUTCFullYear(), now.getUTCMonth(),
+          now.getUTCDate() - daysSinceMonday + offset * 7,
+          0, 0, 0, 0,
+        ));
+        endDate = new Date(Date.UTC(
+          startDate.getUTCFullYear(), startDate.getUTCMonth(),
+          startDate.getUTCDate() + 6,
+          23, 59, 59, 999,
+        ));
         break;
       }
       case 'yearly': {
-        startDate = new Date(now.getFullYear() + offset, 0, 1);
-        endDate = new Date(now.getFullYear() + offset, 11, 31, 23, 59, 59, 999);
+        const year = now.getUTCFullYear() + offset;
+        startDate = new Date(Date.UTC(year, 0, 1, 0, 0, 0, 0));
+        endDate = new Date(Date.UTC(year, 11, 31, 23, 59, 59, 999));
         break;
       }
       case 'monthly':
       default: {
-        startDate = new Date(now.getFullYear(), now.getMonth() + offset, 1);
-        endDate = new Date(now.getFullYear(), now.getMonth() + offset + 1, 0, 23, 59, 59, 999);
+        const year = now.getUTCFullYear();
+        const month = now.getUTCMonth() + offset;
+        startDate = new Date(Date.UTC(year, month, 1, 0, 0, 0, 0));
+        endDate = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59, 999));
         break;
       }
     }

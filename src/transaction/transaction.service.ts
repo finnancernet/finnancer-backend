@@ -52,7 +52,7 @@ export class TransactionService {
   }
 
   async findAll(): Promise<Transaction[]> {
-    return this.transactionModel.find().sort({ date: -1 }).exec();
+    return this.transactionModel.find().sort({ authorizedDate: -1, date: -1 }).exec();
   }
 
   private buildTransactionQuery(
@@ -66,9 +66,9 @@ export class TransactionService {
     };
 
     if (filters?.startDate || filters?.endDate) {
-      query.date = {};
-      if (filters.startDate) query.date.$gte = new Date(filters.startDate);
-      if (filters.endDate) query.date.$lte = new Date(filters.endDate);
+      query.authorizedDate = {};
+      if (filters.startDate) query.authorizedDate.$gte = new Date(filters.startDate);
+      if (filters.endDate) query.authorizedDate.$lte = new Date(filters.endDate);
     }
 
     if (filters?.minAmount !== undefined || filters?.maxAmount !== undefined) {
@@ -114,7 +114,7 @@ export class TransactionService {
 
     const query = this.transactionModel
       .find(mongoQuery)
-      .sort({ date: -1 });
+      .sort({ authorizedDate: -1, date: -1 });
 
     if (skip !== undefined) {
       query.skip(skip);
@@ -154,7 +154,7 @@ export class TransactionService {
   async findByAccountId(accountId: string): Promise<Transaction[]> {
     return this.transactionModel
       .find({ accountId })
-      .sort({ date: -1 })
+      .sort({ authorizedDate: -1, date: -1 })
       .exec();
   }
 
@@ -172,7 +172,7 @@ export class TransactionService {
 
     return this.transactionModel
       .find({ accountId })
-      .sort({ date: -1 })
+      .sort({ authorizedDate: -1, date: -1 })
       .exec();
   }
 
@@ -184,9 +184,9 @@ export class TransactionService {
     return this.transactionModel
       .find({
         accountId,
-        date: { $gte: startDate, $lte: endDate },
+        authorizedDate: { $gte: startDate, $lte: endDate },
       })
-      .sort({ date: -1 })
+      .sort({ authorizedDate: -1, date: -1 })
       .exec();
   }
 
@@ -207,9 +207,9 @@ export class TransactionService {
     return this.transactionModel
       .find({
         accountId,
-        date: { $gte: startDate, $lte: endDate },
+        authorizedDate: { $gte: startDate, $lte: endDate },
       })
-      .sort({ date: -1 })
+      .sort({ authorizedDate: -1, date: -1 })
       .exec();
   }
 
